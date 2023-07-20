@@ -48,7 +48,7 @@ class PositionAliasWidget(QWidget):
 
     def add_position_box(self):
         if self.position_count < 12:
-            groupBox = QGroupBox(self.position_names[self.position_count])
+            groupBox = QGroupBox()
             self.scrollAreaWidgetLayout.addWidget(groupBox)
             lb = QLabel(f"{self.position_names[self.position_count]} ->")
             le = QLineEdit()

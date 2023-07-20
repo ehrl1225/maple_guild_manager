@@ -168,3 +168,6 @@ class Guild:
             for m in self.members[index:]:
                 self.members_names[m.name] -= 1
             del self.members[index]
+
+    def __str__(self):
+        return f"{self.server} 서버의 {self.name} 길드"
