@@ -1,5 +1,5 @@
 from PyQt5.QtWidgets import QWidget, QVBoxLayout, QHBoxLayout, QLineEdit, QLabel, QPushButton, QScrollArea, QGroupBox
-
+from data_manager import DataManager
 
 class PositionAliasWidget(QWidget):
     position_names = [
@@ -41,6 +41,7 @@ class PositionAliasWidget(QWidget):
         main_vbox = QVBoxLayout()
         main_vbox.addLayout(btn_hbox)
         main_vbox.addWidget(self.scrollArea)
+        main_vbox.addLayout(btn_hbox2)
 
         self.setLayout(main_vbox)
 

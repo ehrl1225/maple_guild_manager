@@ -1,4 +1,4 @@
-from PyQt5.QtWidgets import QWidget, QVBoxLayout
+from PyQt5.QtWidgets import QWidget, QVBoxLayout, QTableWidget
 
 
 class MainWidget(QWidget):
@@ -9,6 +9,6 @@ class MainWidget(QWidget):
 
     def initUI(self):
 
+        self.tb = QTableWidget()
 
         vbox = QVBoxLayout()
-        
