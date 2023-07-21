@@ -1,5 +1,5 @@
 from PyQt5.QtWidgets import QWidget, QVBoxLayout, QTableWidget
-
+from my_table_widget import MyTableWidget
 
 class MainWidget(QWidget):
 

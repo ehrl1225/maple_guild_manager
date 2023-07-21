@@ -34,6 +34,9 @@ class MemberHighestLevelWidget(QWidget):
         cb = QComboBox()
         btn = QPushButton("X")
 
+        for p in DataManager.get_current_guild().get_available_positions():
+            cb.addItem(p)
+
         hbox = QHBoxLayout()
         hbox.addWidget(le)
         hbox.addWidget(cb)

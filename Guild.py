@@ -59,15 +59,15 @@ class Guild:
     position_name: list[str] = ["gm", "gvm", "gmem1", "gmem2", "gmem3", "gmem4",
                                 "gmem5", "gmem6", "gmem7", "gmem8", "gmem9", "gmem10"]
 
-    def __init__(self, server=None, name=None, gid=None) -> None:
+    def __init__(self, server: str, name: str, position_count:int = 5) -> None:
         self.members: list[GuildMember] = list()
         self.members_names: dict[str, int] = dict()
         self.server: str = server
         self.name: str = name
         self.maple_id: str = str()
         self.maple_password: str = str()
-        self.gid: int = gid
-        self.position_count: int = 5
+        self.gid: int = int()
+        self.position_count: int = position_count
         self.position_alias: list[str] = list()
         self.position_highest_level_members: dict[str, str] = dict()
         self.vacant_positions: set = set()
@@ -83,11 +83,24 @@ class Guild:
             self.members_names[m.name] -=1
         del self.members[key]
 
-    def __eq__(self, other: Self):
+    def __eq__(self, other: Self) -> bool:
         if other.name == self.name:
             return True
         else:
             return False
+
+    def __str__(self) -> str:
+        return f"{self.server} 서버의 {self.name} 길드"
+
+    def is_available_maple_page(self) -> bool:
+        if self.maple_id is not None and self.maple_password is not None:
+            return True
+        else:
+            return False
+
+    def get_available_positions(self) -> Generator[str, None, None]:
+        for p in self.position_name[:self.position_count]:
+            yield p
 
     def get_gid(self) -> int:
         return self.gid
@@ -96,7 +109,7 @@ class Guild:
         for p in self.position_name[2:]:
             yield p
 
-    def get_member_count(self):
+    def get_member_count(self) -> int:
         return self.position_count-2
 
     def get_position_count(self) -> int:
@@ -162,12 +175,9 @@ class Guild:
             self.members_names[item.name] = len(self.members)
             self.members.append(item)
 
-    def remove(self, item: GuildMember):
+    def remove(self, item: GuildMember) -> None:
         if item.name in self.members_names:
             index = self.members_names[item.name]
             for m in self.members[index:]:
                 self.members_names[m.name] -= 1
             del self.members[index]
-
-    def __str__(self):
-        return f"{self.server} 서버의 {self.name} 길드"
