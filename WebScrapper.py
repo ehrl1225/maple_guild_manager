@@ -85,6 +85,22 @@ class WebScrapper:
         return webdriver.Chrome(service=Service(chromedriver_autoinstaller.install(path=WebScrapper.chromedriver_path)),
                                 options=chrome_options)
 
+    def update_guild(self, guild: Guild) -> None:
+        maple_gg_need_permissions = "position job last_login level".split(" ")
+        maple_page_need_permission = "contribution"
+        maple_rank_need_permission = "position job level".split(" ")
+        if guild.is_permitted(maple_gg_need_permissions[0]) or \
+            guild.is_permitted(maple_gg_need_permissions[1]) or \
+            guild.is_permitted(maple_gg_need_permissions[2]) or \
+            guild.is_permitted(maple_gg_need_permissions[3]):
+            self.get_from_maple_gg(guild)
+        if guild.is_permitted(maple_page_need_permission):
+            self.get_from_maple_page(guild)
+        if guild.is_permitted(maple_rank_need_permission[0]) or \
+            guild.is_permitted(maple_rank_need_permission[1]) or \
+            guild.is_permitted(maple_rank_need_permission[2]):
+            self.get_from_maple_rank(guild)
+
     def get_from_maple_gg(self, guild: Guild) -> None:
         driver = self.set_chrome_driver()
         url = "https://" + parse.quote(f"maple.gg/guild/{server_name[guild.server]}/{guild.name}")
@@ -94,6 +110,7 @@ class WebScrapper:
             element.click()
             alert = Alert(driver)
             alert.accept()
+            driver.implicitly_wait(5)
         try:
             WebDriverWait(driver, 10).until(
                 EC.presence_of_element_located((By.CLASS_NAME, "mb-2"))
@@ -116,10 +133,10 @@ class WebScrapper:
                 GuildMember(
                     name=name,
                     job=job,
+                    level=level,
                     last_login=last_login,
                     position=position
-                ),
-                overwrite=True
+                )
             )
 
         members = soup.find_all("div", attrs={"class": "col-lg-3 col-md-6 col-sm-6 mt-4"})
@@ -137,41 +154,43 @@ class WebScrapper:
             )
 
     def get_from_maple_page(self, guild: Guild) -> None:
-        driver = self.set_chrome_driver()
-        driver.get("https://maplestory.nexon.com/Authentication/Login#a")
-        driver.find_element(By.ID, "eid").send_keys(guild.maple_id)
-        driver.find_element(By.ID, "epw").send_keys(guild.maple_password)
-        driver.find_element(By.CLASS_NAME, "login_btn_wrap").click()
-        try:
-            WebDriverWait(driver, 20).until(
-                EC.element_to_be_clickable((By.XPATH, '//*[@id="gnbMyInfo"]/a/span[1]'))
-            )
-        except TimeoutException:
-            driver.quit()
-            print("로그인 실패")
-        driver.get("https://maplestory.nexon.com/MyMaple/Profile")
-        xpath = "//*[@id='container']/div/div/div/div[1]/div[2]/a/img"
-        try:
-            WebDriverWait(driver, 10).until(
-                EC.element_to_be_clickable((By.XPATH, xpath))
-            )
-        finally:
-            element = driver.find_element(By.XPATH, "//*[@id='container']/div/div/div/div[1]/div[2]/a").get_attribute(
-                'href')
-        driver.get(element.split("?")[0] + "/GuildMembers" + '?' + element.split("?")[1])
-        html = driver.page_source
-        driver.quit()
-        soup = BeautifulSoup(html, "lxml")
-        members = soup.find_all("div", attrs={"class": "fr_name"})
-        for m in members:
-            name = m.find("a").text
-            contribution = m.find("span", attrs={"class": "gd_fr_info"}).text.split(" / ")[1].replace("기여도", "").strip()
-            guild.append(
-                GuildMember(
-                    name=name,
-                    contribution=contribution
+        if guild.is_available_maple_page():
+
+            driver = self.set_chrome_driver()
+            driver.get("https://maplestory.nexon.com/Authentication/Login#a")
+            driver.find_element(By.ID, "eid").send_keys(guild.maple_id)
+            driver.find_element(By.ID, "epw").send_keys(guild.maple_password)
+            driver.find_element(By.CLASS_NAME, "login_btn_wrap").click()
+            try:
+                WebDriverWait(driver, 20).until(
+                    EC.element_to_be_clickable((By.XPATH, '//*[@id="gnbMyInfo"]/a/span[1]'))
                 )
-            )
+            except TimeoutException:
+                driver.quit()
+                print("로그인 실패")
+            driver.get("https://maplestory.nexon.com/MyMaple/Profile")
+            xpath = "//*[@id='container']/div/div/div/div[1]/div[2]/a/img"
+            try:
+                WebDriverWait(driver, 10).until(
+                    EC.element_to_be_clickable((By.XPATH, xpath))
+                )
+            finally:
+                element = driver.find_element(By.XPATH, "//*[@id='container']/div/div/div/div[1]/div[2]/a").get_attribute(
+                    'href')
+            driver.get(element.split("?")[0] + "/GuildMembers" + '?' + element.split("?")[1])
+            html = driver.page_source
+            driver.quit()
+            soup = BeautifulSoup(html, "lxml")
+            members = soup.find_all("div", attrs={"class": "fr_name"})
+            for m in members:
+                name = m.find("a").text
+                contribution = m.find("span", attrs={"class": "gd_fr_info"}).text.split(" / ")[1].replace("기여도", "").strip()
+                guild.append(
+                    GuildMember(
+                        name=name,
+                        contribution=contribution
+                    )
+                )
 
     def get_from_maple_rank(self, guild: Guild) -> None:
         if guild.gid is None:

@@ -1,14 +1,20 @@
 from Guild import Guild
 import pickle
 import os
-from typing import Generator
+from typing import Generator, Callable
+
 
 class DataManager:
+    position_names = [
+                         "길드 마스터",
+                         "길드 부마스터"
+                     ] + [f"길드 멤버원{n}" for n in range(1, 11)]
     guilds: dict[str, dict[str, Guild]] = dict()
     data_folder: str = "data"
     data_file_name: str = "data.pkl"
     current_guild_name: str = str()
     current_guild_server: str = str()
+    update_functions: list[Callable[[],None]] = list()
 
     def __init__(self) -> None:
         pass
@@ -62,10 +68,29 @@ class DataManager:
             return Guild(server="", name="")
 
     @staticmethod
-    def add_guild(name:str, server:str, position_count: int) -> None:
-        new_guild = Guild(server=server, name=name, position_count= position_count)
+    def add_guild(name: str, server: str, position_count: int) -> None:
+        new_guild = Guild(server=server, name=name, position_count=position_count)
         DataManager.guilds[server][name] = new_guild
 
     @staticmethod
-    def set_guild_account(name:str, server:str, maple_id:str, password:str) -> None:
-        pass
+    def set_guild_account(name: str, server: str, maple_id: str, password: str) -> None:
+        DataManager.guilds[server][name].set_account(maple_id=maple_id, password=password)
+
+    @staticmethod
+    def set_guild_position_alias(name: str, server: str, position: str, alias: str):
+        DataManager.guilds[server][name].set_position_alias(position=position, alias=alias)
+
+    @staticmethod
+    def posisiton_kor_to_eng(kor_position):
+        index = DataManager.position_names.index(kor_position)
+        eng_position = Guild.position_name[index]
+        return eng_position
+
+    @staticmethod
+    def update_signal():
+        for f in DataManager.update_functions:
+            f()
+
+    @staticmethod
+    def add_update_function(func: Callable[[],None]):
+        DataManager.update_functions.append(func)

@@ -19,17 +19,18 @@ class GuildMember:
         self.contribution = contribution
 
     def update(self, member: Self,
-               overwrite_position=True,
-               overwrite_job=True,
-               overwrite_level=True,
-               overwrite_last_login=True,
-               overwrite_contribution=True
+               permissions:dict[str]
                ) -> None:
-        self.position = member.position
-        self.job = member.job
-        self.level = member.level
-        self.last_login = member.last_login
-        self.contribution = member.contribution
+        if permissions["position"]:
+            self.position = member.position
+        if permissions["job"]:
+            self.job = member.job
+        if permissions["level"]:
+            self.level = member.level
+        if permissions["last_login"]:
+            self.last_login = member.last_login
+        if permissions["contribution"]:
+            self.contribution = member.contribution
 
     def __str__(self) -> str:
         answer = f"이름 : {self.name}\n"
@@ -59,7 +60,7 @@ class Guild:
     position_name: list[str] = ["gm", "gvm", "gmem1", "gmem2", "gmem3", "gmem4",
                                 "gmem5", "gmem6", "gmem7", "gmem8", "gmem9", "gmem10"]
 
-    def __init__(self, server: str, name: str, position_count:int = 5) -> None:
+    def __init__(self, server: str, name: str, position_count: int = 5) -> None:
         self.members: list[GuildMember] = list()
         self.members_names: dict[str, int] = dict()
         self.server: str = server
@@ -71,6 +72,14 @@ class Guild:
         self.position_alias: list[str] = list()
         self.position_highest_level_members: dict[str, str] = dict()
         self.vacant_positions: set = set()
+        self.property_permissions: dict = {
+            "position": True,
+            "job": True,
+            "level": True,
+            "last_login": True,
+            "contribution": True
+        }
+        self.exception_members: set = set()
 
     def __getitem__(self, item) -> GuildMember:
         return self.members[item]
@@ -80,7 +89,7 @@ class Guild:
 
     def __delitem__(self, key) -> None:
         for m in self.members[key:]:
-            self.members_names[m.name] -=1
+            self.members_names[m.name] -= 1
         del self.members[key]
 
     def __eq__(self, other: Self) -> bool:
@@ -110,7 +119,7 @@ class Guild:
             yield p
 
     def get_member_count(self) -> int:
-        return self.position_count-2
+        return self.position_count - 2
 
     def get_position_count(self) -> int:
         return self.position_count
@@ -134,10 +143,8 @@ class Guild:
     def add_position_highest_level_member(self, name, position) -> None:
         self.position_highest_level_members[name] = position
 
-
     def set_gid(self, gid) -> None:
         self.gid = gid
-
 
     def member_position(self, num) -> str:
         return self.position_name[num + 1]
@@ -146,30 +153,29 @@ class Guild:
         self.maple_id = maple_id
         self.maple_password = password
 
-
     def set_position_count(self, count) -> None:
         self.position_count = count
 
     '''
-        적용시키려는 직위 이름이 길드가 가지고 있을 직위의 개수를 넘어가는 직위 번호라면 (예를 들어 position count 변수가 )
-        길드 클래스가 가지고 있는 직위 개수값이 틀렸을 것이라는 판단하에 직위 개수값을 변경한다.
+        
     '''
 
-    def set_position_alias(self, name, alias) -> None:
-        if name in self.position_name:
-            position_index = self.position_name.index(name)
-            if position_index >= self.position_count:
-                self.position_count = position_index + 1
-            self.position_alias[name] = alias
+    def set_position_alias(self, position, alias) -> None:
+        if position in self.position_name:
+            # this may cause bugs
+            # position_index = self.position_name.index(name)
+            # if position_index >= self.position_count:
+            #     self.position_count = position_index + 1
+            self.position_alias[position] = alias
         else:
-            # raise here
+            raise KeyError
+
+    def append(self, item: GuildMember) -> None:
+        if item.name in self.exception_members:
             pass
-
-
-    def append(self, item: GuildMember, overwrite: bool = False) -> None:
-        if item.name in self.members_names:
+        elif item.name in self.members_names:
             index = self.members_names[item.name]
-            self.members[index].update(item)
+            self.members[index].update(item,self.property_permissions)
 
         else:
             self.members_names[item.name] = len(self.members)
@@ -181,3 +187,22 @@ class Guild:
             for m in self.members[index:]:
                 self.members_names[m.name] -= 1
             del self.members[index]
+
+    def is_permitted(self, permission:str) -> bool:
+        if self.property_permissions[permission]:
+            return True
+        else:
+            return False
+
+    def get_permissions(self) -> list[str]:
+        return list(self.property_permissions.keys())
+
+    def set_permissions(self, position, job, level, last_login, contribution) -> None:
+        self.property_permissions["position"] = position
+        self.property_permissions["job"] = job
+        self.property_permissions["level"] = level
+        self.property_permissions["last_login"] = last_login
+        self.property_permissions["contribution"] = contribution
+
+    def clear_highest_level_members(self):
+        self.position_highest_level_members = {}

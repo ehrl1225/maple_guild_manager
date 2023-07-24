@@ -12,3 +12,6 @@ class MainWidget(QWidget):
         self.tb = QTableWidget()
 
         vbox = QVBoxLayout()
+
+        self.setLayout(vbox)
+

@@ -1,6 +1,10 @@
 from PyQt5.QtWidgets import QWidget, QLineEdit, QComboBox, QLabel, QVBoxLayout, QHBoxLayout, QCheckBox, QGroupBox, \
     QSpinBox, QPushButton
 from data_manager import DataManager
+from position_alias_widget import PositionAliasWidget
+from member_highest_level_widget import MemberHighestLevelWidget
+from guild_update_setting_widget import GuildUpdateSettingWidget
+
 
 class GuildAddWidget(QWidget):
 
@@ -25,6 +29,10 @@ class GuildAddWidget(QWidget):
         self.add_btn = QPushButton("add")
         self.del_btn = QPushButton("remove")
         self.cancel_btn = QPushButton("cancel")
+
+        self.pa_wg = PositionAliasWidget()
+        self.mhl_wg = MemberHighestLevelWidget()
+        self.gus_wg = GuildUpdateSettingWidget()
 
         #
         self.refresh_guild_cb()
@@ -65,7 +73,6 @@ class GuildAddWidget(QWidget):
         self.main_vbox.addLayout(button_hbox)
 
         self.setLayout(self.main_vbox)
-        self.show()
 
     def refresh_guild_cb(self):
         self.guilds_cb.clear()
@@ -116,7 +123,7 @@ class GuildAddWidget(QWidget):
         name = self.name_le.text()
         server = self.server_le.text()
         position_count = self.position_count_sb.value()
-
+        DataManager.add_guild(name=name, server=server, position_count=position_count)
         if self.maple_account_chb.isChecked():
             item = self.main_vbox.itemAt(5)
             widget: QGroupBox = item.widget()
@@ -125,14 +132,13 @@ class GuildAddWidget(QWidget):
             id_layout = id_item.layout()
             id_le_item = id_layout.itemAt(1)
             id_widget: QLineEdit = id_le_item.widget()
-            id = id_widget.text()
+            maple_id = id_widget.text()
             pw_item = layout.itemAt(1)
             pw_layout = pw_item.layout()
             pw_le_item = pw_layout.itemAt(1)
             pw_widget: QLineEdit = pw_le_item.widget()
-            pw = pw_widget.text()
-            print(id, pw)
-
+            maple_pw = pw_widget.text()
+            DataManager.set_guild_account(name=name, server=server, maple_id=maple_id,password=maple_pw)
 
 
 
@@ -142,4 +148,5 @@ if __name__ == '__main__':
 
     app = QApplication(sys.argv)
     wg = GuildAddWidget()
+    wg.show()
     sys.exit(app.exec_())

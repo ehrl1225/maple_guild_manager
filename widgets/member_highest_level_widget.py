@@ -9,6 +9,9 @@ class MemberHighestLevelWidget(QWidget):
         self.initUI()
 
     def initUI(self):
+
+        DataManager.add_update_function(self.refresh)
+
         self.scrollArea = QScrollArea()
         self.scrollArea.setWidgetResizable(True)
         self.scrollAreaWidget = QWidget()
@@ -25,7 +28,9 @@ class MemberHighestLevelWidget(QWidget):
         self.add_btn.pressed.connect(self.add_highest_level_member)
 
         self.setLayout(main_vbox)
-        self.show()
+
+    def refresh(self):
+        pass
 
     def add_highest_level_member(self):
         group_box = QGroupBox()
@@ -68,10 +73,26 @@ class MemberHighestLevelWidget(QWidget):
             widget = item.widget()
             self.scrollAreaWidgetLayout.removeWidget(widget)
 
+    def apply_changes(self):
+        current_guild = DataManager.get_current_guild()
+        current_guild.clear_highest_level_members()
+        if self.scrollAreaWidgetLayout.count()>0:
+            for i in range(1,self.scrollAreaWidgetLayout.count()):
+                item = self.scrollAreaWidgetLayout.itemAt(i)
+                layout = item.layout()
+                le_item = layout.itemAt(0)
+                le: QLineEdit = le_item.widget()
+                name = le.text()
+                cb_item = layout.itemAt(1)
+                cb: QComboBox = cb_item.widget()
+                position = cb.currentIndex()
+                current_guild.add_position_highest_level_member(name=name, position=position)
+
 
 if __name__ == '__main__':
     from PyQt5.QtWidgets import QApplication
     import sys
     app = QApplication(sys.argv)
     wg = MemberHighestLevelWidget()
+    wg.show()
     sys.exit(app.exec_())
