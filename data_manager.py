@@ -1,4 +1,5 @@
 from Guild import Guild
+from WebScrapper import WebScrapper, server_name
 import pickle
 import os
 from typing import Generator, Callable
@@ -9,12 +10,12 @@ class DataManager:
                          "길드 마스터",
                          "길드 부마스터"
                      ] + [f"길드 멤버원{n}" for n in range(1, 11)]
-    guilds: dict[str, dict[str, Guild]] = dict()
+    guilds: dict[str, dict[str, Guild]] = {s:dict() for s in server_name}
     data_folder: str = "data"
     data_file_name: str = "data.pkl"
     current_guild_name: str = str()
     current_guild_server: str = str()
-    update_functions: list[Callable[[],None]] = list()
+    update_functions: list[Callable[[], None]] = list()
 
     def __init__(self) -> None:
         pass
@@ -24,10 +25,21 @@ class DataManager:
         return os.path.join(DataManager.data_folder, DataManager.data_file_name)
 
     @staticmethod
-    def get_guilds() -> Generator[Guild, None, None]:
-        for g_s in DataManager.guilds:
-            for g_n in DataManager.guilds[g_s]:
-                yield DataManager.guilds[g_s][g_n]
+    def get_guilds(server: str) -> Generator[Guild, None, None]:
+        if server != "":
+            for g_n in DataManager.guilds[server]:
+                yield DataManager.guilds[server][g_n]
+
+    @staticmethod
+    def get_servers() -> Generator[str,None,None]:
+        for s in DataManager.guilds:
+            if len(DataManager.guilds[s])>0:
+                yield s
+
+
+    @staticmethod
+    def get_guild(server, name):
+        return DataManager.guilds[server][name]
 
     @staticmethod
     def save() -> None:
@@ -56,9 +68,9 @@ class DataManager:
             return False
 
     @staticmethod
-    def set_current_guild(guild: Guild) -> None:
-        DataManager.current_guild_name = guild.name
-        DataManager.current_guild_server = guild.server
+    def set_current_guild(server: str, name: str) -> None:
+        DataManager.current_guild_server = server
+        DataManager.current_guild_name = name
 
     @staticmethod
     def get_current_guild() -> Guild:
@@ -81,16 +93,72 @@ class DataManager:
         DataManager.guilds[server][name].set_position_alias(position=position, alias=alias)
 
     @staticmethod
-    def posisiton_kor_to_eng(kor_position):
+    def posisiton_kor_to_eng(kor_position) -> str:
         index = DataManager.position_names.index(kor_position)
         eng_position = Guild.position_name[index]
         return eng_position
 
     @staticmethod
-    def update_signal():
+    def update_changes() -> None:
         for f in DataManager.update_functions:
             f()
 
     @staticmethod
-    def add_update_function(func: Callable[[],None]):
+    def add_update_function(func: Callable[[], None]) -> None:
         DataManager.update_functions.append(func)
+
+    @staticmethod
+    def server_eng_to_kor(eng_server) -> str:
+        for k in server_name:
+            if server_name[k] == eng_server:
+                return k
+
+    @staticmethod
+    def get_current_position_length() -> int:
+        return DataManager.get_current_guild().get_position_count()
+
+    @staticmethod
+    def get_position_alias(kor_position) -> str:
+        index = DataManager.position_names.index(kor_position)
+        eng_position = Guild.position_name[index]
+        return DataManager.get_current_guild().get_position_alias(eng_position)
+
+    @staticmethod
+    def get_position_name(index) -> str:
+        return DataManager.position_names[index]
+
+    @staticmethod
+    def set_current_permission(position, job, level, last_login, contribution) -> None:
+        current_guild = DataManager.get_current_guild()
+        current_guild.set_permissions(
+            position=position,
+            job=job,
+            level=level,
+            last_login=last_login,
+            contribution=contribution
+        )
+
+    @staticmethod
+    def get_current_permission() -> dict[str,str]:
+        current_guild = DataManager.get_current_guild()
+        return current_guild.get_permissions()
+
+    @staticmethod
+    def add_current_highest_level_member(name, position) -> None:
+        current_guild= DataManager.get_current_guild()
+        current_guild.add_position_highest_level_member(name=name, position=position)
+
+    @staticmethod
+    def clear_current_highest_level_members() -> None:
+        current_guild = DataManager.get_current_guild()
+        current_guild.clear_highest_level_members()
+
+    @staticmethod
+    def get_current_highest_level_members():
+        current_guild = DataManager.get_current_guild()
+        return current_guild.get_highest_level_members()
+
+    @staticmethod
+    def get_current_available_positions() -> list[str]:
+        current_guild = DataManager.get_current_guild()
+        return [p for p in current_guild.get_available_positions()]

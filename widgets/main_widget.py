@@ -1,5 +1,6 @@
 from PyQt5.QtWidgets import QWidget, QVBoxLayout, QTableWidget
 from my_table_widget import MyTableWidget
+from data_manager import DataManager
 
 class MainWidget(QWidget):
 
@@ -15,3 +16,5 @@ class MainWidget(QWidget):
 
         self.setLayout(vbox)
 
+    def refresh_tb(self):
+        self.tb.clear()

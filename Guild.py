@@ -19,7 +19,7 @@ class GuildMember:
         self.contribution = contribution
 
     def update(self, member: Self,
-               permissions:dict[str]
+               permissions: dict[str]
                ) -> None:
         if permissions["position"]:
             self.position = member.position
@@ -69,10 +69,10 @@ class Guild:
         self.maple_password: str = str()
         self.gid: int = int()
         self.position_count: int = position_count
-        self.position_alias: list[str] = list()
+        self.position_alias: dict[str, str] = dict()
         self.position_highest_level_members: dict[str, str] = dict()
         self.vacant_positions: set = set()
-        self.property_permissions: dict = {
+        self.property_permissions: dict[str, bool] = {
             "position": True,
             "job": True,
             "level": True,
@@ -100,6 +100,10 @@ class Guild:
 
     def __str__(self) -> str:
         return f"{self.server} 서버의 {self.name} 길드"
+
+    def get_permitted_properties(self) -> Generator[str, None, None]:
+        for p in self.property_permissions:
+            yield p
 
     def is_available_maple_page(self) -> bool:
         if self.maple_id is not None and self.maple_password is not None:
@@ -175,7 +179,7 @@ class Guild:
             pass
         elif item.name in self.members_names:
             index = self.members_names[item.name]
-            self.members[index].update(item,self.property_permissions)
+            self.members[index].update(item, self.property_permissions)
 
         else:
             self.members_names[item.name] = len(self.members)
@@ -188,14 +192,14 @@ class Guild:
                 self.members_names[m.name] -= 1
             del self.members[index]
 
-    def is_permitted(self, permission:str) -> bool:
+    def is_permitted(self, permission: str) -> bool:
         if self.property_permissions[permission]:
             return True
         else:
             return False
 
-    def get_permissions(self) -> list[str]:
-        return list(self.property_permissions.keys())
+    def get_permissions(self) -> dict:
+        return self.property_permissions
 
     def set_permissions(self, position, job, level, last_login, contribution) -> None:
         self.property_permissions["position"] = position
@@ -204,5 +208,12 @@ class Guild:
         self.property_permissions["last_login"] = last_login
         self.property_permissions["contribution"] = contribution
 
-    def clear_highest_level_members(self):
+    def clear_highest_level_members(self) -> None:
         self.position_highest_level_members = {}
+
+    def get_position_alias(self, position) -> str:
+        if position in self.position_alias:
+            return self.position_alias[position]
+
+    def get_highest_level_members(self) -> dict[str, str]:
+        return self.position_highest_level_members

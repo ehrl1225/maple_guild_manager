@@ -1,10 +1,27 @@
 from PyQt5.QtWidgets import QWidget, QLineEdit, QComboBox, QLabel, QVBoxLayout, QHBoxLayout, QCheckBox, QGroupBox, \
-    QSpinBox, QPushButton
+    QSpinBox, QPushButton, QCompleter
+from PyQt5.QtCore import QStringListModel
 from data_manager import DataManager
 from position_alias_widget import PositionAliasWidget
 from member_highest_level_widget import MemberHighestLevelWidget
 from guild_update_setting_widget import GuildUpdateSettingWidget
 
+server_name = [
+    "루나", "luna",
+    "스카니아", "scania",
+    "엘리시움", "elysium",
+    "크로아", "croa",
+    "오로라", "aurora",
+    "제니스", "zenith",
+    "이노시스", "enosis",
+    "아케인", "arcane",
+    "노바", "nova",
+    "레드", "red",
+    "베라", "bera",
+    "유니온", "union",
+    "리부트", "reboot",
+    "리부트2", "reboot2"
+]
 
 class GuildAddWidget(QWidget):
 
@@ -13,13 +30,21 @@ class GuildAddWidget(QWidget):
         self.initUI()
 
     def initUI(self):
-        self.guilds_cb = QComboBox()
+        DataManager.add_update_function(self.refresh_guild_cb)
+
+        self.guild_server_cb = QComboBox()
+        self.guild_name_cb = QComboBox()
 
         self.name_lb = QLabel("길드 이름 :")
         self.name_le = QLineEdit()
 
         self.server_lb = QLabel("길드 서버 이름 :")
         self.server_le = QLineEdit()
+        self.server_model = QStringListModel()
+        self.server_model.setStringList(server_name)
+        self.server_completer = QCompleter()
+        self.server_completer.setModel(self.server_model)
+        self.server_le.setCompleter(self.server_completer)
 
         self.position_count_lb = QLabel("직위 개수")
         self.position_count_sb = QSpinBox()
@@ -47,7 +72,10 @@ class GuildAddWidget(QWidget):
         #
         self.main_vbox = QVBoxLayout()
 
-        self.main_vbox.addWidget(self.guilds_cb)
+        guild_hbox = QHBoxLayout()
+        guild_hbox.addWidget(self.guild_server_cb)
+        guild_hbox.addWidget(self.guild_name_cb)
+        self.main_vbox.addLayout(guild_hbox)
 
         name_hbox = QHBoxLayout()
         name_hbox.addWidget(self.name_lb)
@@ -74,23 +102,33 @@ class GuildAddWidget(QWidget):
 
         self.setLayout(self.main_vbox)
 
-    def refresh_guild_cb(self):
-        self.guilds_cb.clear()
-        for g in DataManager.get_data_keys():
-            self.guilds_cb.addItem(g)
-        self.guilds_cb.addItem("new")
+    def open_widget(self, widget_show):
+        self.guilds_cb_work()
+        DataManager.update_changes()
+        widget_show()
 
-    def guilds_cb_work(self):
-        current_guild_name = self.guilds_cb.currentText()
-        pass
+    def refresh_guild_cb(self) -> None:
+        self.guild_server_cb.clear()
+        for s in DataManager.get_servers():
+            self.guild_server_cb.addItem(s)
 
-    def maple_account_chb_work(self):
+        self.guild_name_cb.clear()
+        self.guild_name_cb.addItem("new")
+        for g in DataManager.get_guilds(self.guild_server_cb.currentText()):
+            self.guild_name_cb.addItem(g.name)
+
+    def guilds_cb_work(self) -> None:
+        current_guild_server= self.guild_server_cb.currentText()
+        current_guild_name = self.guild_name_cb.currentText()
+        DataManager.set_current_guild(server=current_guild_server, name=current_guild_name)
+
+    def maple_account_chb_work(self) -> None:
         if self.maple_account_chb.isChecked():
             self.add_maple_account_box()
         else:
             self.del_maple_account_box()
 
-    def add_maple_account_box(self):
+    def add_maple_account_box(self) -> None:
         group_box = QGroupBox()
         self.main_vbox.insertWidget(5, group_box)
         id_lb = QLabel("아이디 :")
@@ -114,14 +152,17 @@ class GuildAddWidget(QWidget):
 
         group_box.setLayout(vbox)
 
-    def del_maple_account_box(self):
+    def del_maple_account_box(self) -> None:
         item = self.main_vbox.itemAt(5)
         widget = item.widget()
         self.main_vbox.removeWidget(widget)
+        self.adjustSize()
 
-    def add_guild(self):
+    def add_guild(self) -> None:
         name = self.name_le.text()
         server = self.server_le.text()
+        if server.isalpha():
+            server = DataManager.server_eng_to_kor(server)
         position_count = self.position_count_sb.value()
         DataManager.add_guild(name=name, server=server, position_count=position_count)
         if self.maple_account_chb.isChecked():
@@ -139,7 +180,7 @@ class GuildAddWidget(QWidget):
             pw_widget: QLineEdit = pw_le_item.widget()
             maple_pw = pw_widget.text()
             DataManager.set_guild_account(name=name, server=server, maple_id=maple_id,password=maple_pw)
-
+        DataManager.update_changes()
 
 
 if __name__ == '__main__':
