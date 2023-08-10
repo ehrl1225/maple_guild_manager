@@ -5,7 +5,7 @@ from data_manager import DataManager
 from typing import Generator
 
 
-class PositionAliasWidget(QWidget):
+class PositionAliasWidget(QGroupBox):
 
     def __init__(self):
         super().__init__()
@@ -50,6 +50,7 @@ class PositionAliasWidget(QWidget):
         main_vbox.addLayout(btn_hbox2)
 
         self.setLayout(main_vbox)
+
 
     def refresh(self):
         if self.position_count < DataManager.get_current_position_length():
@@ -138,23 +139,23 @@ class PositionAliasWidget(QWidget):
 
     def closeEvent(self, a0: QCloseEvent) -> None:
         if self.changed:
-            reply = QMessageBox.warning(
-                self,
-                "경고",
-                "적용하지 않았는데 적용하시겠습니까?",
-                buttons=QMessageBox.Yes| QMessageBox.No | QMessageBox.Cancel,
-                defaultButton=QMessageBox.No
-            )
-            if reply == QMessageBox.Cancel:
-                a0.ignore()
-            else:
-                if reply == QMessageBox.Yes:
-                    self.apply_position_alias()
-                elif reply == QMessageBox.No:
-                    self.refresh()
-                else:
-                    pass
-                self.changed = False
+            # reply = QMessageBox.warning(
+            #     self,
+            #     "경고",
+            #     "적용하지 않았는데 적용하시겠습니까?",
+            #     buttons=QMessageBox.Yes| QMessageBox.No | QMessageBox.Cancel,
+            #     defaultButton=QMessageBox.No
+            # )
+            # if reply == QMessageBox.Cancel:
+            #     a0.ignore()
+            # else:
+            #     if reply == QMessageBox.Yes:
+            #         self.apply_position_alias()
+            #     elif reply == QMessageBox.No:
+            #         self.refresh()
+            #     else:
+            #         pass
+            #     self.changed = False
                 a0.accept()
         else:
             a0.accept()

@@ -50,6 +50,10 @@ class GuildAddWidget(QWidget):
         self.position_count_sb = QSpinBox()
 
         self.maple_account_chb = QCheckBox("메이플 계정")
+        self.position_alias_chb = QCheckBox("직위 별명 설정")
+        self.member_highest_level_chb = QCheckBox("멤버 최고 레벨 저장")
+        self.guild_update_setting_chb = QCheckBox("길드 정보 업데이트 요소")
+
 
         self.add_btn = QPushButton("add")
         self.del_btn = QPushButton("remove")
@@ -66,6 +70,9 @@ class GuildAddWidget(QWidget):
         self.position_count_sb.setMaximum(12)
 
         self.maple_account_chb.released.connect(self.maple_account_chb_work)
+        self.position_alias_chb.released.connect(self.position_alias_chb_work)
+        self.member_highest_level_chb.released.connect(self.member_highest_level_chb_work)
+        self.guild_update_setting_chb.released.connect(self.guild_update_setting_chb_work)
 
         self.add_btn.pressed.connect(self.add_guild)
 
@@ -94,6 +101,12 @@ class GuildAddWidget(QWidget):
 
         self.main_vbox.addWidget(self.maple_account_chb)
 
+        self.main_vbox.addWidget(self.position_alias_chb)
+
+        self.main_vbox.addWidget(self.member_highest_level_chb)
+
+        self.main_vbox.addWidget(self.guild_update_setting_chb)
+
         button_hbox = QHBoxLayout()
         button_hbox.addWidget(self.add_btn)
         button_hbox.addWidget(self.del_btn)
@@ -101,6 +114,39 @@ class GuildAddWidget(QWidget):
         self.main_vbox.addLayout(button_hbox)
 
         self.setLayout(self.main_vbox)
+
+    def position_alias_chb_work(self):
+        if self.position_alias_chb.isChecked():
+            index = self.main_vbox.indexOf(self.position_alias_chb)
+            self.main_vbox.insertWidget(index + 1, self.pa_wg)
+            self.pa_wg.adjustSize()
+            self.pa_wg.show()
+        else:
+            self.main_vbox.removeWidget(self.pa_wg)
+            self.pa_wg.close()
+        self.adjustSize()
+
+    def member_highest_level_chb_work(self):
+        if self.member_highest_level_chb.isChecked():
+            index = self.main_vbox.indexOf(self.member_highest_level_chb)
+            self.main_vbox.insertWidget(index+1,self.mhl_wg)
+            self.mhl_wg.adjustSize()
+            self.mhl_wg.show()
+        else:
+            self.main_vbox.removeWidget(self.mhl_wg)
+            self.mhl_wg.close()
+        self.adjustSize()
+
+    def guild_update_setting_chb_work(self):
+        if self.guild_update_setting_chb.isChecked():
+            index = self.main_vbox.indexOf(self.guild_update_setting_chb)
+            self.main_vbox.insertWidget(index+1,self.gus_wg)
+            self.gus_wg.adjustSize()
+            self.gus_wg.show()
+        else:
+            self.main_vbox.removeWidget(self.gus_wg)
+            self.gus_wg.close()
+        self.adjustSize()
 
     def open_widget(self, widget_show):
         self.guilds_cb_work()

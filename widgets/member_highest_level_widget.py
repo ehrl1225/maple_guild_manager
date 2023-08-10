@@ -3,7 +3,7 @@ from functools import partial
 from data_manager import DataManager
 
 
-class MemberHighestLevelWidget(QWidget):
+class MemberHighestLevelWidget(QGroupBox):
 
     def __init__(self) -> None:
         super().__init__()
@@ -26,9 +26,12 @@ class MemberHighestLevelWidget(QWidget):
         main_vbox.addWidget(self.add_btn)
         main_vbox.addWidget(self.scrollArea)
 
+        self.add_highest_level_member()
+
         self.add_btn.pressed.connect(self.add_highest_level_member)
 
         self.setLayout(main_vbox)
+
 
     def refresh(self) -> None:
         for _ in range(self.scrollAreaWidgetLayout.count()):
@@ -58,10 +61,12 @@ class MemberHighestLevelWidget(QWidget):
         for p in DataManager.get_current_guild().get_available_positions():
             cb.addItem(p)
 
+        btn.setMinimumWidth(30)
+
         hbox: QHBoxLayout = QHBoxLayout()
-        hbox.addWidget(le)
-        hbox.addWidget(cb)
-        hbox.addWidget(btn)
+        hbox.addWidget(le,2)
+        hbox.addWidget(cb,2)
+        hbox.addWidget(btn,1)
         index = self.scrollAreaWidgetLayout.count() - 1
         btn.pressed.connect(partial(self.del_highest_level_member, index))
         self.member_layouts.append(hbox)

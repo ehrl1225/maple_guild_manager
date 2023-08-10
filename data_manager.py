@@ -1,4 +1,4 @@
-from Guild import Guild
+from Guild import Guild, GuildMember
 from WebScrapper import WebScrapper, server_name
 import pickle
 import os
@@ -21,6 +21,15 @@ class DataManager:
         pass
 
     @staticmethod
+    def get_jobs(guild_server:str, guild_name:str) -> list[str]:
+        guild = DataManager.get_guild(server=guild_server,name=guild_name)
+        return guild.get_jobs()
+
+    @staticmethod
+    def get_position_names():
+        return DataManager.position_names
+
+    @staticmethod
     def get_data_file_path() -> str:
         return os.path.join(DataManager.data_folder, DataManager.data_file_name)
 
@@ -39,7 +48,10 @@ class DataManager:
 
     @staticmethod
     def get_guild(server, name):
-        return DataManager.guilds[server][name]
+        if server in DataManager.guilds:
+            if name in DataManager.guilds[server]:
+                return DataManager.guilds[server][name]
+        return Guild(server = "", name="")
 
     @staticmethod
     def save() -> None:
@@ -162,3 +174,36 @@ class DataManager:
     def get_current_available_positions() -> list[str]:
         current_guild = DataManager.get_current_guild()
         return [p for p in current_guild.get_available_positions()]
+
+    @staticmethod
+    def get_filtered_members(guild_server, guild_name, filters) -> list[GuildMember]:
+        guild = DataManager.get_guild(guild_server, guild_name)
+        members = []
+        for m in guild.get_members():
+            for f in filters:
+                if f[0] == "직위":
+                    if f[2] == True:
+                        if f[1] != m.position:
+                            break
+                    else:
+                        if f[1] == m.position:
+                            break
+                elif f[0] == "직업":
+                    if f[2] == True:
+                        if f[1] != m.job:
+                            break
+                    else:
+                        if f[1] == m.job:
+                            break
+                elif f[0] == "레벨":
+                    if m.level < f[1] or f[2] < m.level:
+                        break
+                elif f[0] == "마지막 활동일":
+                    if m.last_login < f[1] or f[2] < m.last_login:
+                        break
+                elif f[0] == "기여도":
+                    if m.contribution < f[1] or f[2] < m.contribution:
+                        break
+            else:
+                members.append(m)
+        return members

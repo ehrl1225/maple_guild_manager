@@ -4,19 +4,19 @@ from typing import Generator, Self
 class GuildMember:
 
     def __init__(self,
-                 name,
-                 position=None,
-                 job=None,
-                 level=None,
-                 last_login=None,
-                 contribution=None,
+                 name:str,
+                 position: str=None,
+                 job: str=None,
+                 level:int=None,
+                 last_login:int=None,
+                 contribution:int=None,
                  ) -> None:
-        self.name = name
-        self.position = position
-        self.job = job
-        self.level = level
-        self.last_login = last_login
-        self.contribution = contribution
+        self.name:str = name
+        self.position:str = position
+        self.job:str = job
+        self.level:int = level
+        self.last_login:int = last_login
+        self.contribution:int = contribution
 
     def update(self, member: Self,
                permissions: dict[str]
@@ -100,6 +100,15 @@ class Guild:
 
     def __str__(self) -> str:
         return f"{self.server} 서버의 {self.name} 길드"
+
+    def get_members(self):
+        return self.members
+
+    def get_jobs(self) -> list[str]:
+        jobs = set()
+        for m in self.members:
+            jobs.add(m.job)
+        return list(jobs)
 
     def get_permitted_properties(self) -> Generator[str, None, None]:
         for p in self.property_permissions:

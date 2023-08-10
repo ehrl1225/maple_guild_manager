@@ -1,8 +1,9 @@
-from PyQt5.QtWidgets import QTableWidget, QAbstractItemView
+from PyQt5.QtWidgets import QTableWidget, QAbstractItemView, QTableWidgetItem
 from PyQt5.QtGui import QKeyEvent
-from PyQt5.QtCore import Qt
+from PyQt5.QtCore import Qt, pyqtSignal
 
 class MyTableWidget(QTableWidget):
+    copied = pyqtSignal(list)
 
     def __init__(self):
         super().__init__()
@@ -16,9 +17,9 @@ class MyTableWidget(QTableWidget):
             self.copy()
 
     def copy(self):
-        selected_item = self.selectedItems()
-        if selected_item:
-            pass
+        selected_items: list[QTableWidgetItem] = self.selectedItems()
+        if selected_items:
+            self.copied.emit(selected_items)
 
     def set_divide_chr(self, chr):
         self.divide_chr = chr

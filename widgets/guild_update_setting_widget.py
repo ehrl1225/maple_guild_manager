@@ -1,9 +1,9 @@
-from PyQt5.QtWidgets import QWidget, QVBoxLayout, QCheckBox
+from PyQt5.QtWidgets import QWidget, QVBoxLayout, QCheckBox, QGroupBox
 from PyQt5.QtCore import Qt
 from data_manager import DataManager
 
 
-class GuildUpdateSettingWidget(QWidget):
+class GuildUpdateSettingWidget(QGroupBox):
 
     def __init__(self):
         super().__init__()
@@ -19,7 +19,7 @@ class GuildUpdateSettingWidget(QWidget):
         self.last_login_chb = QCheckBox("마지막 활동일")
         self.contribution_chb = QCheckBox("기여도")
 
-        self.position_chb.setLayoutDirection(Qt.RightToLeft)
+        # self.position_chb.setLayoutDirection(Qt.RightToLeft)
 
         vbox = QVBoxLayout()
         vbox.addWidget(self.position_chb)
@@ -29,6 +29,7 @@ class GuildUpdateSettingWidget(QWidget):
         vbox.addWidget(self.contribution_chb)
 
         self.setLayout(vbox)
+
 
     def refresh(self):
         permissions = DataManager.get_current_permission()
