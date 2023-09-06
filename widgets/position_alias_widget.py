@@ -20,8 +20,6 @@ class PositionAliasWidget(QGroupBox):
 
         self.add_btn = QPushButton("직위 추가")
         self.del_btn = QPushButton("직위 감소")
-        self.apply_btn = QPushButton("적용")
-        self.cancel_btn = QPushButton("취소")
         self.scrollArea = QScrollArea()
         self.scrollArea.setWidgetResizable(True)
         self.scrollAreaWidget = QWidget()
@@ -40,17 +38,19 @@ class PositionAliasWidget(QGroupBox):
         btn_hbox.addWidget(self.add_btn)
         btn_hbox.addWidget(self.del_btn)
 
-        btn_hbox2 = QHBoxLayout()
-        btn_hbox2.addWidget(self.apply_btn)
-        btn_hbox2.addWidget(self.cancel_btn)
-
         main_vbox = QVBoxLayout()
         main_vbox.addLayout(btn_hbox)
         main_vbox.addWidget(self.scrollArea)
-        main_vbox.addLayout(btn_hbox2)
 
         self.setLayout(main_vbox)
 
+    def initialize(self):
+        for i in range(5, self.position_count):
+            self.del_position_box()
+        for i in range(5):
+            layout = self.scrollAreaWidgetLayout.itemAt(i).widget().layout()
+            le: QLineEdit = layout.itemAt(1).widget()
+            le.clear()
 
     def refresh(self):
         if self.position_count < DataManager.get_current_position_length():
@@ -65,12 +65,12 @@ class PositionAliasWidget(QGroupBox):
             item = self.scrollAreaWidgetLayout.itemAt(i)
             group_box = item.widget()
             layout = group_box.layout()
-            le:QLineEdit = layout.itemAt(1).widget()
+            le: QLineEdit = layout.itemAt(1).widget()
             alias = DataManager.get_position_alias(DataManager.get_position_name(index=i))
             le.setText(alias)
 
-    def get_data(self, index:int) -> str:
-        if index<self.scrollAreaWidgetLayout.count():
+    def get_data(self, index: int) -> str:
+        if index < self.scrollAreaWidgetLayout.count():
             item = self.scrollAreaWidgetLayout.itemAt(index)
             group_box = item.widget()
             layout = group_box.layout()
@@ -78,12 +78,12 @@ class PositionAliasWidget(QGroupBox):
             return le.text()
 
     def check_change(self) -> None:
-        if self.position_count>0:
+        if self.position_count > 0:
             if self.position_count == DataManager.get_current_position_length():
                 data = [self.get_data(i) for i in range(self.position_count)]
                 for i in range(self.position_count):
                     alias = DataManager.get_position_alias(DataManager.get_position_name(index=i))
-                    if data[i]!=alias:
+                    if data[i] != alias:
                         break
                 else:
                     self.changed = False
@@ -117,7 +117,7 @@ class PositionAliasWidget(QGroupBox):
 
     def apply_position_alias(self):
         current_guild = DataManager.get_current_guild()
-        for i in self.scrollAreaWidgetLayout.count():
+        for i in range(self.scrollAreaWidgetLayout.count()):
             item = self.scrollAreaWidgetLayout.itemAt(i)
             widget: QGroupBox = item.widget()
             layout = widget.layout()
@@ -156,7 +156,7 @@ class PositionAliasWidget(QGroupBox):
             #     else:
             #         pass
             #     self.changed = False
-                a0.accept()
+            a0.accept()
         else:
             a0.accept()
 

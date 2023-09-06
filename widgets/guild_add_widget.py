@@ -1,10 +1,11 @@
 from PyQt5.QtWidgets import QWidget, QLineEdit, QComboBox, QLabel, QVBoxLayout, QHBoxLayout, QCheckBox, QGroupBox, \
-    QSpinBox, QPushButton, QCompleter
+    QSpinBox, QPushButton, QCompleter, QMessageBox
 from PyQt5.QtCore import QStringListModel
 from data_manager import DataManager
-from position_alias_widget import PositionAliasWidget
-from member_highest_level_widget import MemberHighestLevelWidget
-from guild_update_setting_widget import GuildUpdateSettingWidget
+from widgets.position_alias_widget import PositionAliasWidget
+from widgets.member_highest_level_widget import MemberHighestLevelWidget
+from widgets.guild_update_setting_widget import GuildUpdateSettingWidget
+from functools import partial
 
 server_name = [
     "루나", "luna",
@@ -23,10 +24,13 @@ server_name = [
     "리부트2", "reboot2"
 ]
 
+
 class GuildAddWidget(QWidget):
 
     def __init__(self):
         super().__init__()
+
+        self.new_text = "new"
         self.initUI()
 
     def initUI(self):
@@ -54,7 +58,6 @@ class GuildAddWidget(QWidget):
         self.member_highest_level_chb = QCheckBox("멤버 최고 레벨 저장")
         self.guild_update_setting_chb = QCheckBox("길드 정보 업데이트 요소")
 
-
         self.add_btn = QPushButton("add")
         self.del_btn = QPushButton("remove")
         self.cancel_btn = QPushButton("cancel")
@@ -64,6 +67,7 @@ class GuildAddWidget(QWidget):
         self.gus_wg = GuildUpdateSettingWidget()
 
         #
+        self.guild_name_cb.currentIndexChanged.connect(self.guild_cb_work)
         self.refresh_guild_cb()
 
         self.position_count_sb.setMinimum(5)
@@ -115,10 +119,77 @@ class GuildAddWidget(QWidget):
 
         self.setLayout(self.main_vbox)
 
+    #실제로는 추가 버튼을 클릭하면 자동으로 new로 바뀌면서 리셋되서 안쓰지만 혹시 몰라서 추가해둠
+    def clear_all(self):
+        self.name_le.clear()
+        self.server_le.clear()
+        self.position_count_sb.setValue(5)
+        if self.maple_account_chb.isChecked():
+            layout = self.main_vbox.itemAt(5).widget().layout()
+            id_le: QLineEdit = layout.itemAt(0).layout().itemAt(1).widget()
+            pw_le: QLineEdit = layout.itemAt(1).layout().itemAt(1).widget()
+            id_le.clear()
+            pw_le.clear()
+        if self.position_alias_chb.isChecked():
+            self.pa_wg.initialize()
+        if self.member_highest_level_chb.isChecked():
+            self.mhl_wg.initialize()
+        if self.guild_update_setting_chb.isChecked():
+            self.gus_wg.initialize()
+
+
+    def guild_cb_work(self):
+        current_guild = self.guild_name_cb.currentText()
+        if current_guild == self.new_text:
+            self.name_le.clear()
+            self.name_le.setEnabled(True)
+            self.server_le.clear()
+            self.server_le.setEnabled(True)
+            self.position_count_sb.setValue(5)
+            if self.maple_account_chb.isChecked():
+                layout = self.main_vbox.itemAt(5).widget().layout()
+                id_le: QLineEdit = layout.itemAt(0).layout().itemAt(1).widget()
+                pw_le: QLineEdit = layout.itemAt(1).layout().itemAt(1).widget()
+                id_le.clear()
+                pw_le.clear()
+            if self.position_alias_chb.isChecked():
+                self.pa_wg.initialize()
+            if self.member_highest_level_chb.isChecked():
+                self.mhl_wg.initialize()
+            if self.guild_update_setting_chb.isChecked():
+                self.gus_wg.initialize()
+            self.add_btn.setText("add")
+
+        else:
+            guild_server = self.guild_server_cb.currentText()
+            guild_name = self.guild_name_cb.currentText()
+            guild = DataManager.get_guild(server=guild_server, name=guild_name)
+            DataManager.set_current_guild(server=guild_server, name=guild_name)
+            self.name_le.setText(guild.get_name())
+            self.name_le.setDisabled(True)
+            self.server_le.setText(guild.get_server())
+            self.server_le.setDisabled(True)
+            self.position_count_sb.setValue(guild.get_position_count())
+            if self.maple_account_chb.isChecked():
+                layout = self.main_vbox.itemAt(5).widget().layout()
+                id_le: QLineEdit = layout.itemAt(0).layout().itemAt(1).widget()
+                pw_le: QLineEdit = layout.itemAt(1).layout().itemAt(1).widget()
+                id_le.setText(guild.get_maple_id())
+                pw_le.setText(guild.get_maple_password())
+            if self.position_alias_chb.isChecked():
+                self.pa_wg.refresh()
+            if self.member_highest_level_chb.isChecked():
+                self.mhl_wg.refresh()
+            if self.guild_update_setting_chb.isChecked():
+                self.gus_wg.refresh()
+            self.add_btn.setText("apply")
+
     def position_alias_chb_work(self):
+
         if self.position_alias_chb.isChecked():
             index = self.main_vbox.indexOf(self.position_alias_chb)
             self.main_vbox.insertWidget(index + 1, self.pa_wg)
+            self.pa_wg.refresh()
             self.pa_wg.adjustSize()
             self.pa_wg.show()
         else:
@@ -129,7 +200,7 @@ class GuildAddWidget(QWidget):
     def member_highest_level_chb_work(self):
         if self.member_highest_level_chb.isChecked():
             index = self.main_vbox.indexOf(self.member_highest_level_chb)
-            self.main_vbox.insertWidget(index+1,self.mhl_wg)
+            self.main_vbox.insertWidget(index + 1, self.mhl_wg)
             self.mhl_wg.adjustSize()
             self.mhl_wg.show()
         else:
@@ -140,7 +211,7 @@ class GuildAddWidget(QWidget):
     def guild_update_setting_chb_work(self):
         if self.guild_update_setting_chb.isChecked():
             index = self.main_vbox.indexOf(self.guild_update_setting_chb)
-            self.main_vbox.insertWidget(index+1,self.gus_wg)
+            self.main_vbox.insertWidget(index + 1, self.gus_wg)
             self.gus_wg.adjustSize()
             self.gus_wg.show()
         else:
@@ -159,12 +230,12 @@ class GuildAddWidget(QWidget):
             self.guild_server_cb.addItem(s)
 
         self.guild_name_cb.clear()
-        self.guild_name_cb.addItem("new")
+        self.guild_name_cb.addItem(self.new_text)
         for g in DataManager.get_guilds(self.guild_server_cb.currentText()):
             self.guild_name_cb.addItem(g.name)
 
     def guilds_cb_work(self) -> None:
-        current_guild_server= self.guild_server_cb.currentText()
+        current_guild_server = self.guild_server_cb.currentText()
         current_guild_name = self.guild_name_cb.currentText()
         DataManager.set_current_guild(server=current_guild_server, name=current_guild_name)
 
@@ -181,8 +252,25 @@ class GuildAddWidget(QWidget):
         id_le = QLineEdit()
         pw_lb = QLabel("비밀번호 :")
         pw_le = QLineEdit()
-
+        echo_chb = QCheckBox("비밀번호 보기")
         pw_le.setEchoMode(QLineEdit.EchoMode.Password)
+
+        if self.guild_name_cb.currentText() != "new":
+            guild_server= self.guild_server_cb.currentText()
+            guild_name = self.guild_name_cb.currentText()
+            data = DataManager.get_account(server=guild_server, name=guild_name)
+            id_le.setText(data["id"])
+            pw_le.setText(data["pw"])
+
+
+
+        def setEcho(pw_le:QLineEdit, chb:QCheckBox):
+            if chb.isChecked():
+                pw_le.setEchoMode(QLineEdit.EchoMode.Normal)
+            else:
+                pw_le.setEchoMode(QLineEdit.EchoMode.Password)
+
+        echo_chb.released.connect(partial(setEcho, pw_le, echo_chb))
 
         vbox = QVBoxLayout()
 
@@ -196,6 +284,8 @@ class GuildAddWidget(QWidget):
         pw_hbox.addWidget(pw_le)
         vbox.addLayout(pw_hbox)
 
+        vbox.addWidget(echo_chb)
+
         group_box.setLayout(vbox)
 
     def del_maple_account_box(self) -> None:
@@ -205,29 +295,57 @@ class GuildAddWidget(QWidget):
         self.adjustSize()
 
     def add_guild(self) -> None:
-        name = self.name_le.text()
-        server = self.server_le.text()
-        if server.isalpha():
-            server = DataManager.server_eng_to_kor(server)
-        position_count = self.position_count_sb.value()
-        DataManager.add_guild(name=name, server=server, position_count=position_count)
-        if self.maple_account_chb.isChecked():
-            item = self.main_vbox.itemAt(5)
-            widget: QGroupBox = item.widget()
-            layout = widget.layout()
-            id_item = layout.itemAt(0)
-            id_layout = id_item.layout()
-            id_le_item = id_layout.itemAt(1)
-            id_widget: QLineEdit = id_le_item.widget()
-            maple_id = id_widget.text()
-            pw_item = layout.itemAt(1)
-            pw_layout = pw_item.layout()
-            pw_le_item = pw_layout.itemAt(1)
-            pw_widget: QLineEdit = pw_le_item.widget()
-            maple_pw = pw_widget.text()
-            DataManager.set_guild_account(name=name, server=server, maple_id=maple_id,password=maple_pw)
-        DataManager.update_changes()
+        if self.guild_name_cb.currentText() == self.new_text:
 
+            name = self.name_le.text()
+            server = self.server_le.text()
+            if server.isalpha():
+                server = DataManager.server_eng_to_kor(server)
+            if not DataManager.is_exist_server(server):
+                warn = QMessageBox.warning(
+                    self,
+                    "경고",
+                    "서버 이름을 다시 확인해 주세요.",
+                    buttons=QMessageBox.Ok,
+                    defaultButton=QMessageBox.Ok
+                )
+                if warn == QMessageBox.Ok:
+                    return
+            position_count = self.position_count_sb.value()
+            DataManager.add_guild(name=name, server=server, position_count=position_count)
+            if self.maple_account_chb.isChecked():
+                item = self.main_vbox.itemAt(5)
+                widget: QGroupBox = item.widget()
+                layout = widget.layout()
+                id_item = layout.itemAt(0)
+                id_layout = id_item.layout()
+                id_le_item = id_layout.itemAt(1)
+                id_widget: QLineEdit = id_le_item.widget()
+                maple_id = id_widget.text()
+                pw_item = layout.itemAt(1)
+                pw_layout = pw_item.layout()
+                pw_le_item = pw_layout.itemAt(1)
+                pw_widget: QLineEdit = pw_le_item.widget()
+                maple_pw = pw_widget.text()
+                DataManager.set_guild_account(name=name, server=server, maple_id=maple_id, password=maple_pw)
+            DataManager.update_changes()
+        else:
+            name = self.guild_name_cb.currentText()
+            server = self.guild_server_cb.currentText()
+            position_count = self.position_count_sb.value()
+            DataManager.set_position_count(name=name, server=server, position_count=position_count)
+            if self.maple_account_chb.isChecked():
+                layout = self.main_vbox.itemAt(5).widget().layout()
+                id_le: QLineEdit = layout.itemAt(0).layout().itemAt(1).widget()
+                pw_le: QLineEdit = layout.itemAt(1).layout().itemAt(1).widget()
+                DataManager.set_guild_account(name=name,server=server, maple_id=id_le.text(), password=pw_le.text())
+            if self.position_alias_chb.isChecked():
+                self.pa_wg.apply_position_alias()
+            if self.member_highest_level_chb.isChecked():
+                self.mhl_wg.apply_changes()
+            if self.guild_update_setting_chb.isChecked():
+                self.gus_wg.change_permission()
+            DataManager.update_changes()
 
 if __name__ == '__main__':
     from PyQt5.QtWidgets import QApplication

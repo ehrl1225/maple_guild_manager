@@ -1,3 +1,5 @@
+import os
+
 from bs4 import BeautifulSoup
 from selenium import webdriver
 from selenium.webdriver.common.by import By
@@ -73,15 +75,15 @@ wid = {
 
 
 class WebScrapper:
-    chromedriver_path: str = "driver/"
+    chromedriver_path: str = str(os.path.join(os.getcwd(),"driver/"))
 
     def __init__(self) -> None:
         self.driver: webdriver.Chrome
 
     def set_chrome_driver(self) -> webdriver.Chrome:
         chrome_options = webdriver.ChromeOptions()
-        chrome_options.add_argument("--headless")
-        chrome_options.add_argument("--no-sandbox")
+        # chrome_options.add_argument("--headless")
+        # chrome_options.add_argument("--no-sandbox")
         return webdriver.Chrome(service=Service(chromedriver_autoinstaller.install(path=WebScrapper.chromedriver_path)),
                                 options=chrome_options)
 
@@ -193,7 +195,7 @@ class WebScrapper:
                 )
 
     def get_from_maple_rank(self, guild: Guild) -> None:
-        if guild.gid is None:
+        if guild.gid == 0:
             rank_url = f"https://maplestory.nexon.com/N23Ranking/World/Guild?w={server_id.index(guild.server)}&n=" + parse.quote(
                 f"{guild.name}")
             res = requests.get(rank_url)
@@ -272,14 +274,15 @@ if __name__ == '__main__':
         server="오로라",
         name="봄날"
     )
+
     guild.set_position_count(7)
-    # guild.add_position_highest_level_member(name="멜론퐁듀", position=guild.member_position(1))
-    # guild.add_position_highest_level_member(name="안녕반갑소", position=guild.member_position(2))
-    # guild.add_position_highest_level_member(name="밥야", position=guild.member_position(3))
-    # guild.add_position_highest_level_member(name="황소령", position=guild.member_position(4))
+    guild.add_position_highest_level_member(name="멜론퐁듀", position=guild.member_position(1))
+    guild.add_position_highest_level_member(name="안녕반갑소", position=guild.member_position(2))
+    guild.add_position_highest_level_member(name="밥야", position=guild.member_position(3))
+    guild.add_position_highest_level_member(name="황소령", position=guild.member_position(4))
     guild.add_position_highest_level_member(name="노득장인", position=guild.member_position(5))
 
     webscrapper = WebScrapper()
-    webscrapper.get_from_maple_rank(guild)
-    # for i in guild.members:
-    #     print(i)
+    # webscrapper.get_from_maple_page(guild)
+    for i in guild.members:
+        print(i)

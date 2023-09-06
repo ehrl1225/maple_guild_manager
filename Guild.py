@@ -101,6 +101,18 @@ class Guild:
     def __str__(self) -> str:
         return f"{self.server} 서버의 {self.name} 길드"
 
+    def get_maple_id(self):
+        return self.maple_id
+
+    def get_maple_password(self):
+        return self.maple_password
+
+    def get_name(self):
+        return self.name
+
+    def get_server(self):
+        return self.server
+
     def get_members(self):
         return self.members
 
@@ -146,6 +158,12 @@ class Guild:
             return self.position_name[index + 1]
         else:
             return position
+
+    def get_account(self):
+        data:dict[str,str] = dict()
+        data["id"] = self.maple_id
+        data["pw"] = self.maple_password
+        return data
 
     def master(self) -> str:
         return Guild.position_name[0]

@@ -30,6 +30,12 @@ class GuildUpdateSettingWidget(QGroupBox):
 
         self.setLayout(vbox)
 
+    def initialize(self):
+        self.position_chb.setChecked(False)
+        self.job_chb.setChecked(False)
+        self.level_chb.setChecked(False)
+        self.last_login_chb.setChecked(False)
+        self.contribution_chb.setChecked(False)
 
     def refresh(self):
         permissions = DataManager.get_current_permission()

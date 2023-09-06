@@ -1,10 +1,12 @@
 from functools import partial
 
+from PyQt5.QtGui import QKeySequence
 from PyQt5.QtWidgets import QWidget, QVBoxLayout, QTableWidget, QGroupBox, QHBoxLayout, QComboBox, QCheckBox, QSpinBox, \
     QLabel, QTableWidgetItem, QPushButton, QMainWindow, QAction
-from my_table_widget import MyTableWidget
-from guild_add_widget import GuildAddWidget
+# from my_table_widget import MyTableWidget
+from widgets.guild_add_widget import GuildAddWidget
 from data_manager import DataManager
+from widgets.web_scrapper_thread import WebScrapperThread
 
 
 class MainWidget(QWidget):
@@ -14,8 +16,12 @@ class MainWidget(QWidget):
         self.initUI()
 
     def initUI(self):
+
+        DataManager.add_update_function(self.update_data)
+
         self.server_cb = QComboBox()
         self.guild_name_cb = QComboBox()
+        self.update_btn = QPushButton("update")
         self.filter_group = QGroupBox()
         self.filter_group_layout = QVBoxLayout()
         self.filter_group.setLayout(self.filter_group_layout)
@@ -25,6 +31,14 @@ class MainWidget(QWidget):
 
         self.tw = QTableWidget()
 
+        self.worker = WebScrapperThread()
+
+        self.worker.done.connect(self.webcrawling_done)
+
+        self.server_cb.currentIndexChanged.connect(self.guild_server_cb_work)
+
+        self.update_btn.pressed.connect(self.refresh_data)
+
         self.filter_add_btn.pressed.connect(self.add_filter)
 
         guild_hbox = QHBoxLayout()
@@ -33,12 +47,45 @@ class MainWidget(QWidget):
 
         vbox = QVBoxLayout()
         vbox.addLayout(guild_hbox)
+        vbox.addWidget(self.update_btn)
         vbox.addWidget(self.filter_add_btn)
         vbox.addWidget(self.filter_group)
         vbox.addWidget(self.tw)
         vbox.addWidget(self.copy_btn)
 
         self.setLayout(vbox)
+
+    def refresh_data(self):
+        guild_server = self.server_cb.currentText()
+        guild_name = self.guild_name_cb.currentText()
+        self.worker.set_guild(DataManager.get_guild(server=guild_server, name=guild_name))
+        self.worker.start()
+        self.update_btn.setDisabled(True)
+
+    def webcrawling_done(self):
+        self.update_btn.setEnabled(True)
+        self.refresh_tb()
+
+
+    def guild_server_cb_work(self):
+        self.guild_name_cb.clear()
+        if self.server_cb.currentIndex() != -1:
+            server = self.server_cb.currentText()
+            for g in DataManager.get_guilds(server):
+                self.guild_name_cb.addItem(g.name)
+
+    def update_data(self):
+        self.server_cb.clear()
+        self.server_cb.currentIndexChanged.disconnect(self.guild_server_cb_work)
+        for s in DataManager.get_servers():
+            self.server_cb.addItem(s)
+        if self.server_cb.count()>0:
+            self.server_cb.setCurrentIndex(0)
+        self.server_cb.currentIndexChanged.connect(self.guild_server_cb_work)
+        self.guild_name_cb.clear()
+        current_guild_server = self.server_cb.currentText()
+        for g in DataManager.get_guilds(current_guild_server):
+            self.guild_name_cb.addItem(g.name)
 
     def refresh_tb(self):
         self.tw.clear()
@@ -96,7 +143,7 @@ class MainWidget(QWidget):
 
             elif current_text == "직업":
                 job_cb = QComboBox()
-                include_chb = QCheckBox()
+                include_chb = QCheckBox("포함")
 
                 for j in DataManager.get_jobs(self.server_cb.currentText(), self.guild_name_cb.currentText()):
                     job_cb.addItem(j)
@@ -175,16 +222,23 @@ class MyMainWindow(QMainWindow):
         self.initUI()
 
     def initUI(self):
-        self.setting = QAction("설정", self)
+        self.setting = QAction("길드 설정", self)
         self.setting.triggered.connect(self.guild_setting_wg.show)
+
+        self.save = QAction("저장", self)
+        self.save.setShortcut(QKeySequence("Ctrl+S"))
+        self.save.triggered.connect(self.save_data)
 
         menubar = self.menuBar()
         menubar.setNativeMenuBar(False)
         settingMenu = menubar.addMenu("&설정")
         settingMenu.addAction(self.setting)
+        settingMenu.addAction(self.save)
 
         self.setCentralWidget(self.my_wg)
 
+    def save_data(self):
+        DataManager.save()
 
 if __name__ == '__main__':
     from PyQt5.QtWidgets import QApplication

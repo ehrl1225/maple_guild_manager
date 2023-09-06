@@ -10,7 +10,7 @@ class DataManager:
                          "길드 마스터",
                          "길드 부마스터"
                      ] + [f"길드 멤버원{n}" for n in range(1, 11)]
-    guilds: dict[str, dict[str, Guild]] = {s:dict() for s in server_name}
+    guilds: dict[str, dict[str, Guild]] = {s: dict() for s in server_name}
     data_folder: str = "data"
     data_file_name: str = "data.pkl"
     current_guild_name: str = str()
@@ -21,8 +21,8 @@ class DataManager:
         pass
 
     @staticmethod
-    def get_jobs(guild_server:str, guild_name:str) -> list[str]:
-        guild = DataManager.get_guild(server=guild_server,name=guild_name)
+    def get_jobs(guild_server: str, guild_name: str) -> list[str]:
+        guild = DataManager.get_guild(server=guild_server, name=guild_name)
         return guild.get_jobs()
 
     @staticmethod
@@ -40,18 +40,17 @@ class DataManager:
                 yield DataManager.guilds[server][g_n]
 
     @staticmethod
-    def get_servers() -> Generator[str,None,None]:
+    def get_servers() -> Generator[str, None, None]:
         for s in DataManager.guilds:
-            if len(DataManager.guilds[s])>0:
+            if len(DataManager.guilds[s]) > 0:
                 yield s
-
 
     @staticmethod
     def get_guild(server, name):
         if server in DataManager.guilds:
             if name in DataManager.guilds[server]:
                 return DataManager.guilds[server][name]
-        return Guild(server = "", name="")
+        return Guild(server="", name="")
 
     @staticmethod
     def save() -> None:
@@ -92,7 +91,7 @@ class DataManager:
             return Guild(server="", name="")
 
     @staticmethod
-    def add_guild(name: str, server: str, position_count: int) -> None:
+    def add_guild(name: str, server: str, position_count: int = 5) -> None:
         new_guild = Guild(server=server, name=name, position_count=position_count)
         DataManager.guilds[server][name] = new_guild
 
@@ -151,13 +150,13 @@ class DataManager:
         )
 
     @staticmethod
-    def get_current_permission() -> dict[str,str]:
+    def get_current_permission() -> dict[str, str]:
         current_guild = DataManager.get_current_guild()
         return current_guild.get_permissions()
 
     @staticmethod
     def add_current_highest_level_member(name, position) -> None:
-        current_guild= DataManager.get_current_guild()
+        current_guild = DataManager.get_current_guild()
         current_guild.add_position_highest_level_member(name=name, position=position)
 
     @staticmethod
@@ -181,29 +180,57 @@ class DataManager:
         members = []
         for m in guild.get_members():
             for f in filters:
-                if f[0] == "직위":
-                    if f[2] == True:
-                        if f[1] != m.position:
+                filter_name = f[0]
+                if filter_name == "직위":
+                    contains = f[2]
+                    position_name = f[1]
+                    if contains == True:
+                        if position_name != m.position:
                             break
                     else:
-                        if f[1] == m.position:
+                        if position_name == m.position:
                             break
-                elif f[0] == "직업":
-                    if f[2] == True:
-                        if f[1] != m.job:
+                elif filter_name == "직업":
+                    contains = f[2]
+                    job_name = f[1]
+                    if contains == True:
+                        if job_name != m.job:
                             break
                     else:
-                        if f[1] == m.job:
+                        if job_name == m.job:
                             break
-                elif f[0] == "레벨":
-                    if m.level < f[1] or f[2] < m.level:
+                elif filter_name == "레벨":
+                    min_level = f[1]
+                    max_level = f[2]
+                    if m.level < min_level or max_level < m.level:
                         break
-                elif f[0] == "마지막 활동일":
-                    if m.last_login < f[1] or f[2] < m.last_login:
+                elif filter_name == "마지막 활동일":
+                    min_last_login = f[1]
+                    max_last_login = f[2]
+                    if m.last_login < min_last_login or max_last_login < m.last_login:
                         break
-                elif f[0] == "기여도":
-                    if m.contribution < f[1] or f[2] < m.contribution:
+                elif filter_name == "기여도":
+                    min_contribution = f[1]
+                    max_contribution = f[2]
+                    if m.contribution < min_contribution or max_contribution < m.contribution:
                         break
             else:
                 members.append(m)
         return members
+
+    @staticmethod
+    def set_position_count(name, server, position_count):
+        guild = DataManager.get_guild(server=server, name=name)
+        guild.set_position_count(position_count)
+
+    @staticmethod
+    def get_account(name, server):
+        guild = DataManager.get_guild(server=server, name=name)
+        return guild.get_account()
+
+    @staticmethod
+    def is_exist_server(server):
+        if server in server_name:
+            return True
+        else:
+            return False
