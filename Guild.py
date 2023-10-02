@@ -241,6 +241,9 @@ class Guild:
     def get_position_alias(self, position) -> str:
         if position in self.position_alias:
             return self.position_alias[position]
+        else:
+            return None
+
 
     def get_highest_level_members(self) -> dict[str, str]:
         return self.position_highest_level_members

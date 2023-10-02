@@ -124,14 +124,15 @@ class PositionAliasWidget(QGroupBox):
             le_item = layout.itemAt(1)
             le: QLineEdit = le_item.widget()
             alias = le.text()
-            position = DataManager.position_names[i]
-            eng_position = DataManager.posisiton_kor_to_eng(position)
-            DataManager.set_guild_position_alias(
-                server=current_guild.server,
-                name=current_guild.name,
-                position=eng_position,
-                alias=alias
-            )
+            if alias!="":
+                position = DataManager.position_names[i]
+                eng_position = DataManager.posisiton_kor_to_eng(position)
+                DataManager.set_guild_position_alias(
+                    server=current_guild.server,
+                    name=current_guild.name,
+                    position=eng_position,
+                    alias=alias
+                )
 
     def cancel_position_alias(self):
         self.refresh()

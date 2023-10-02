@@ -52,7 +52,7 @@ class MemberHighestLevelWidget(QGroupBox):
             le.setText(d)
             cb_item = layout.itemAt(1)
             cb: QComboBox = cb_item.widget()
-            index = data[d]
+            index = positions.index(data[d])
             cb.setCurrentIndex(index)
 
     def add_highest_level_member(self) -> None:
@@ -100,6 +100,7 @@ class MemberHighestLevelWidget(QGroupBox):
 
     def apply_changes(self) -> None:
         DataManager.clear_current_highest_level_members()
+        positions = DataManager.get_current_available_positions()
         if self.scrollAreaWidgetLayout.count() > 0:
             for ml in self.member_layouts:
                 le_item = ml.itemAt(0)
@@ -107,7 +108,8 @@ class MemberHighestLevelWidget(QGroupBox):
                 name = le.text()
                 cb_item = ml.itemAt(1)
                 cb: QComboBox = cb_item.widget()
-                position = cb.currentIndex()
+                position_index = cb.currentIndex()
+                position =  positions[position_index]
                 DataManager.add_current_highest_level_member(name=name, position=position)
 
 

@@ -1,5 +1,6 @@
 from Guild import Guild, GuildMember
 from WebScrapper import WebScrapper, server_name
+from spreadsheet_api import SpreadsheetManager
 import pickle
 import os
 from typing import Generator, Callable
@@ -16,6 +17,8 @@ class DataManager:
     current_guild_name: str = str()
     current_guild_server: str = str()
     update_functions: list[Callable[[], None]] = list()
+    get_filtered_data_func: Callable[[],list[list[str]]]
+
 
     def __init__(self) -> None:
         pass
@@ -110,6 +113,21 @@ class DataManager:
         return eng_position
 
     @staticmethod
+    def position_eng_to_kor(eng_position):
+        index = Guild.position_name.index(eng_position)
+        kor_position = DataManager.position_names[index]
+        return kor_position
+
+    @staticmethod
+    def position_eng_to_kor_alias(server, name, eng_position):
+        guild = DataManager.guilds[server][name]
+        position_alias = guild.get_position_alias(eng_position)
+        if position_alias is None:
+            return DataManager.position_eng_to_kor(eng_position)
+        else:
+            return position_alias
+
+    @staticmethod
     def update_changes() -> None:
         for f in DataManager.update_functions:
             f()
@@ -175,6 +193,11 @@ class DataManager:
         return [p for p in current_guild.get_available_positions()]
 
     @staticmethod
+    def get_kor_position_to_eng(kor_position):
+        index = DataManager.get_position_names().index(kor_position)
+        return Guild.position_name[index]
+
+    @staticmethod
     def get_filtered_members(guild_server, guild_name, filters) -> list[GuildMember]:
         guild = DataManager.get_guild(guild_server, guild_name)
         members = []
@@ -183,7 +206,8 @@ class DataManager:
                 filter_name = f[0]
                 if filter_name == "직위":
                     contains = f[2]
-                    position_name = f[1]
+                    position_kor_name = f[1]
+                    position_name = DataManager.get_kor_position_to_eng(position_kor_name)
                     if contains == True:
                         if position_name != m.position:
                             break
@@ -214,6 +238,8 @@ class DataManager:
                     max_contribution = f[2]
                     if m.contribution < min_contribution or max_contribution < m.contribution:
                         break
+                else:
+                    continue
             else:
                 members.append(m)
         return members
@@ -234,3 +260,17 @@ class DataManager:
             return True
         else:
             return False
+
+    @staticmethod
+    def get_filtered_data(direction):
+        data = DataManager.get_filtered_data_func()
+        if direction == "가로":
+            rotate_data = [["" for __ in range(len(data))] for _ in range(len(data[0]))]
+            for row, i in enumerate(data):
+                for col, j in enumerate(i):
+                    rotate_data[col][row] = j
+            return rotate_data
+        elif direction == "세로":
+            return data
+        else:
+            return [[]]

@@ -95,9 +95,11 @@ class WebScrapper:
             guild.is_permitted(maple_gg_need_permissions[1]) or \
             guild.is_permitted(maple_gg_need_permissions[2]) or \
             guild.is_permitted(maple_gg_need_permissions[3]):
-            self.get_from_maple_gg(guild)
+            # self.get_from_maple_gg(guild)
+            pass
         if guild.is_permitted(maple_page_need_permission):
-            self.get_from_maple_page(guild)
+            # self.get_from_maple_page(guild)
+            pass
         if guild.is_permitted(maple_rank_need_permission[0]) or \
             guild.is_permitted(maple_rank_need_permission[1]) or \
             guild.is_permitted(maple_rank_need_permission[2]):
@@ -270,19 +272,9 @@ class WebScrapper:
 
 
 if __name__ == '__main__':
-    guild = Guild(
-        server="오로라",
-        name="봄날"
-    )
 
-    guild.set_position_count(7)
-    guild.add_position_highest_level_member(name="멜론퐁듀", position=guild.member_position(1))
-    guild.add_position_highest_level_member(name="안녕반갑소", position=guild.member_position(2))
-    guild.add_position_highest_level_member(name="밥야", position=guild.member_position(3))
-    guild.add_position_highest_level_member(name="황소령", position=guild.member_position(4))
-    guild.add_position_highest_level_member(name="노득장인", position=guild.member_position(5))
 
     webscrapper = WebScrapper()
-    # webscrapper.get_from_maple_page(guild)
+    webscrapper.get_from_maple_page(guild)
     for i in guild.members:
         print(i)

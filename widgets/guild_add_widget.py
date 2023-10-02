@@ -58,6 +58,9 @@ class GuildAddWidget(QWidget):
         self.member_highest_level_chb = QCheckBox("멤버 최고 레벨 저장")
         self.guild_update_setting_chb = QCheckBox("길드 정보 업데이트 요소")
 
+        self.maple_account_chb.setDisabled(True)
+        self.guild_update_setting_chb.setDisabled(True)
+
         self.add_btn = QPushButton("add")
         self.del_btn = QPushButton("remove")
         self.cancel_btn = QPushButton("cancel")
@@ -202,6 +205,7 @@ class GuildAddWidget(QWidget):
             index = self.main_vbox.indexOf(self.member_highest_level_chb)
             self.main_vbox.insertWidget(index + 1, self.mhl_wg)
             self.mhl_wg.adjustSize()
+            self.mhl_wg.refresh()
             self.mhl_wg.show()
         else:
             self.main_vbox.removeWidget(self.mhl_wg)
