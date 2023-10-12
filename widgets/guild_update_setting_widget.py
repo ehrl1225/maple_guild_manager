@@ -1,5 +1,4 @@
-from PyQt5.QtWidgets import QWidget, QVBoxLayout, QCheckBox, QGroupBox
-from PyQt5.QtCore import Qt
+from PyQt5.QtWidgets import QVBoxLayout, QCheckBox, QGroupBox
 from data_manager import DataManager
 
 

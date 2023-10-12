@@ -272,9 +272,4 @@ class WebScrapper:
 
 
 if __name__ == '__main__':
-
-
-    webscrapper = WebScrapper()
-    webscrapper.get_from_maple_page(guild)
-    for i in guild.members:
-        print(i)
+    pass

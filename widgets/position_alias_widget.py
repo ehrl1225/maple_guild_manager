@@ -1,8 +1,7 @@
-from PyQt5.QtWidgets import QWidget, QVBoxLayout, QHBoxLayout, QLineEdit, QLabel, QPushButton, QScrollArea, QGroupBox, \
-    QMessageBox
+from PyQt5.QtWidgets import QWidget, QVBoxLayout, QHBoxLayout, QLineEdit, QLabel, QPushButton, QScrollArea, QGroupBox
 from PyQt5.QtGui import QCloseEvent
 from data_manager import DataManager
-from typing import Generator
+
 
 
 class PositionAliasWidget(QGroupBox):

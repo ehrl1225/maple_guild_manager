@@ -1,9 +1,8 @@
 import sys
-import os
 
 from widgets.spreadsheet_thread import SpreadsheetThread
 
-os.chdir("..")
+# os.chdir("..")
 from PyQt5.QtGui import QColor, QCloseEvent
 from PyQt5.QtWidgets import QWidget, QComboBox, QTableWidget, QLineEdit, QPushButton, QSpinBox, QTableWidgetItem, \
     QVBoxLayout, QHBoxLayout, QLabel, QApplication
@@ -31,6 +30,10 @@ class SpreadsheetWidget(QWidget):
         self.direction_cb = QComboBox()
         self.preview_table = QTableWidget()
         self.apply_btn = QPushButton("적용")
+
+        url = DataManager.load_spreadsheet_url()
+        if url != None:
+            self.url_le.setText(url)
 
         self.url_btn.pressed.connect(lambda : self.st.queue.append(self.load_url))
 
@@ -110,6 +113,7 @@ class SpreadsheetWidget(QWidget):
             self.title_cb.currentIndexChanged.connect(self.set_title)
             title = self.title_cb.currentText()
             self.spread_manager.get_worksheet(title)
+            DataManager.save_spreadsheet_url(url)
 
     def get_titles(self):
         self.title_cb.clear()

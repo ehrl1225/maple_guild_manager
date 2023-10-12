@@ -1,6 +1,5 @@
 from Guild import Guild, GuildMember
-from WebScrapper import WebScrapper, server_name
-from spreadsheet_api import SpreadsheetManager
+from WebScrapper import server_name
 import pickle
 import os
 from typing import Generator, Callable
@@ -14,11 +13,12 @@ class DataManager:
     guilds: dict[str, dict[str, Guild]] = {s: dict() for s in server_name}
     data_folder: str = "data"
     data_file_name: str = "data.pkl"
+    spreadsheet_url_file:str = "spreadsheet_url.txt"
     current_guild_name: str = str()
     current_guild_server: str = str()
     update_functions: list[Callable[[], None]] = list()
     get_filtered_data_func: Callable[[],list[list[str]]]
-
+    spreadsheet_url:str
 
     def __init__(self) -> None:
         pass
@@ -57,8 +57,31 @@ class DataManager:
 
     @staticmethod
     def save() -> None:
+        if not os.path.isdir(DataManager.data_folder):
+            os.mkdir(DataManager.data_folder)
         with open(DataManager.get_data_file_path(), "wb") as f:
             pickle.dump(DataManager.guilds, f)
+
+    @staticmethod
+    def get_spreadsheet_url_file_path():
+        return os.path.join(DataManager.data_folder, DataManager.spreadsheet_url_file)
+
+    @staticmethod
+    def save_spreadsheet_url(url) -> None:
+        if not os.path.isdir(DataManager.data_folder):
+            os.mkdir(DataManager.data_folder)
+        with open(DataManager.get_spreadsheet_url_file_path(), "wb") as f:
+            pickle.dump(url, f)
+
+    @staticmethod
+    def load_spreadsheet_url():
+        if os.path.isdir(DataManager.data_folder):
+            path = DataManager.get_spreadsheet_url_file_path()
+            if os.path.isfile(path):
+                with open(path, "rb") as f:
+                    url = pickle.load(f)
+                    DataManager.spreadsheet_ur = url
+                    return url
 
     @staticmethod
     def load() -> None:
@@ -66,9 +89,8 @@ class DataManager:
             path = DataManager.get_data_file_path()
             if os.path.isfile(path):
                 with open(path, "rb") as f:
-                    guilds: list[Guild] = pickle.load(f)
-                    for g in guilds:
-                        DataManager.guilds[g.server][g.name] = g
+                    DataManager.guilds = pickle.load(f)
+
 
     @staticmethod
     def get_data_keys() -> list[str]:
@@ -200,6 +222,8 @@ class DataManager:
     @staticmethod
     def get_filtered_members(guild_server, guild_name, filters) -> list[GuildMember]:
         guild = DataManager.get_guild(guild_server, guild_name)
+        contain_members = set()
+        not_contain_members = set()
         members = []
         for m in guild.get_members():
             for f in filters:
@@ -209,39 +233,42 @@ class DataManager:
                     position_kor_name = f[1]
                     position_name = DataManager.get_kor_position_to_eng(position_kor_name)
                     if contains == True:
-                        if position_name != m.position:
-                            break
+                        if position_name == m.position:
+                            contain_members.add(m)
                     else:
                         if position_name == m.position:
-                            break
+                            not_contain_members.add(m)
                 elif filter_name == "직업":
                     contains = f[2]
                     job_name = f[1]
                     if contains == True:
-                        if job_name != m.job:
-                            break
+                        if job_name == m.job:
+                            contain_members.add(m)
                     else:
                         if job_name == m.job:
-                            break
+                            not_contain_members.add(m)
                 elif filter_name == "레벨":
                     min_level = f[1]
                     max_level = f[2]
                     if m.level < min_level or max_level < m.level:
-                        break
+                        contain_members.add(m)
                 elif filter_name == "마지막 활동일":
                     min_last_login = f[1]
                     max_last_login = f[2]
                     if m.last_login < min_last_login or max_last_login < m.last_login:
-                        break
+                        contain_members.add(m)
                 elif filter_name == "기여도":
                     min_contribution = f[1]
                     max_contribution = f[2]
                     if m.contribution < min_contribution or max_contribution < m.contribution:
-                        break
+                        contain_members.add(m)
                 else:
                     continue
             else:
-                members.append(m)
+                pass
+        if len(contain_members)==0:
+            contain_members = set(guild.get_members())
+        members = list(contain_members-not_contain_members)
         return members
 
     @staticmethod

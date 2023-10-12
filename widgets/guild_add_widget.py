@@ -38,6 +38,7 @@ class GuildAddWidget(QWidget):
 
         self.guild_server_cb = QComboBox()
         self.guild_name_cb = QComboBox()
+        self.pre_guild_name = None
 
         self.name_lb = QLabel("길드 이름 :")
         self.name_le = QLineEdit()
@@ -235,8 +236,13 @@ class GuildAddWidget(QWidget):
 
         self.guild_name_cb.clear()
         self.guild_name_cb.addItem(self.new_text)
-        for g in DataManager.get_guilds(self.guild_server_cb.currentText()):
+        index = 0
+        for g_index, g in enumerate(DataManager.get_guilds(self.guild_server_cb.currentText())):
             self.guild_name_cb.addItem(g.name)
+            if g.name == self.pre_guild_name:
+                index = g_index
+        self.guild_name_cb.setCurrentIndex(index)
+
 
     def guilds_cb_work(self) -> None:
         current_guild_server = self.guild_server_cb.currentText()
@@ -349,6 +355,7 @@ class GuildAddWidget(QWidget):
                 self.mhl_wg.apply_changes()
             if self.guild_update_setting_chb.isChecked():
                 self.gus_wg.change_permission()
+            self.pre_guild_name=  self.guild_name_cb.currentText()
             DataManager.update_changes()
 
 if __name__ == '__main__':
