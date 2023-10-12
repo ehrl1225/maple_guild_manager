@@ -111,7 +111,7 @@ class MemberHighestLevelWidget(QGroupBox):
                 position_index = cb.currentIndex()
                 position =  positions[position_index]
                 DataManager.add_current_highest_level_member(name=name, position=position)
-
+        DataManager.update_changes()
 
 if __name__ == '__main__':
     from PyQt5.QtWidgets import QApplication

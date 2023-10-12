@@ -45,6 +45,12 @@ class SpreadsheetWidget(QWidget):
         self.direction_cb.addItem("세로")
         self.direction_cb.currentIndexChanged.connect(self.paint_line)
 
+        self.preview_table.setRowCount(10)
+        self.preview_table.setColumnCount(10)
+        for i in range(10):
+            for j in range(10):
+                tw_item = QTableWidgetItem("")
+                self.preview_table.setItem(i, j, tw_item)
         self.apply_btn.pressed.connect(self.apply)
 
         vbox =QVBoxLayout()

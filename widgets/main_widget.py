@@ -10,6 +10,7 @@ from data_manager import DataManager
 from widgets.spreadsheet_widget import SpreadsheetWidget
 from widgets.web_scrapper_thread import WebScrapperThread
 import clipboard
+from Guild import Guild
 
 
 class MainWidget(QWidget):
@@ -149,6 +150,7 @@ class MainWidget(QWidget):
         if len(shows) == 0:
             shows = set(self.properties[:-1])
         shows = shows - del_shows
+        filtered_guild_members.sort(key=lambda m: (Guild.position_name.index(m.position), m.name))
         data = []
         for m_index, m in enumerate(filtered_guild_members):
             line = []
@@ -196,6 +198,7 @@ class MainWidget(QWidget):
             if p in shows:
                 shows_list.append(p)
         self.tw.setHorizontalHeaderLabels(shows_list)
+        filtered_guild_members.sort(key=lambda m: (Guild.position_name.index(m.position), m.name))
         for m_index, m in enumerate(filtered_guild_members):
             index = 0
             if "이름" in shows:
@@ -366,16 +369,16 @@ class MyMainWindow(QMainWindow):
         self.spreadsheet = QAction("스프레드시트", self)
         self.spreadsheet.triggered.connect(self.spreadsheet_wg.show)
 
-        self.save = QAction("저장", self)
-        self.save.setShortcut(QKeySequence("Ctrl+S"))
-        self.save.triggered.connect(self.save_data)
+        # self.save = QAction("저장", self)
+        # self.save.setShortcut(QKeySequence("Ctrl+S"))
+        # self.save.triggered.connect(self.save_data)
 
         menubar = self.menuBar()
         menubar.setNativeMenuBar(False)
         settingMenu = menubar.addMenu("&설정")
         settingMenu.addAction(self.setting)
         settingMenu.addAction(self.spreadsheet)
-        settingMenu.addAction(self.save)
+        # settingMenu.addAction(self.save)
 
         self.setCentralWidget(self.my_wg)
 

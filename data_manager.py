@@ -215,6 +215,17 @@ class DataManager:
         return [p for p in current_guild.get_available_positions()]
 
     @staticmethod
+    def get_min_position() :
+        current_guild = DataManager.get_current_guild()
+        answer = 5
+        highest_members = current_guild.get_highest_level_members()
+        for m in highest_members:
+            m_count = (Guild.position_name.index(highest_members[m])+1)
+            if answer < m_count:
+                answer = m_count
+        return answer
+
+    @staticmethod
     def get_kor_position_to_eng(kor_position):
         index = DataManager.get_position_names().index(kor_position)
         return Guild.position_name[index]

@@ -5,7 +5,18 @@ from xlsxwriter.utility import xl_col_to_name
 
 class SpreadsheetManager:
     # print(os.getcwd())
-    gc = gspread.service_account("data/service_account.json")
+    try:
+        gc = gspread.service_account("data/service_account.json")
+    except FileNotFoundError:
+        import sys
+        print("https://cloud.google.com/")
+        print("구글에 '구글 스프레드 시트 api' 적어서 나오는거 보고")
+        print("api 키를 받으세요. 제꺼를 넣어서 줄 수는 있는데")
+        print("만약 제가 님 스프레드 시트 링크를 알면")
+        print("제가 뚫고 들어가는 게 가능하기 때문에 보안을 위해서 각자 api키를 따로 쓰는게 좋을거에요.")
+        input("종료")
+        sys.exit()
+
     sh: gspread.Spreadsheet
     worksheet: gspread.worksheet
     all_value: list[list[str]]
@@ -42,8 +53,8 @@ class SpreadsheetManager:
     def get_horizontal_headers(self, col):
         data = []
         for i in range(col, col + 10):
-            i -= 1
-            if i == -1:
+            i -= 2
+            if i <= -1:
                 data.append("X")
             else:
                 data.append(xl_col_to_name(i))
@@ -52,7 +63,8 @@ class SpreadsheetManager:
     def get_vertical_header(self, row):
         data = []
         for i in range(row, row + 10):
-            if i == 0:
+            i-=1
+            if i <= 0:
                 data.append("X")
             else:
                 data.append(str(i))

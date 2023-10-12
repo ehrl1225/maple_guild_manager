@@ -17,7 +17,6 @@ except ModuleNotFoundError:
     os.system("python3 -m pip install clipboard")
     os.system("python3 -m pip install gspread")
     os.system("python3 -m pip install xlsxwriter")
-    os.system("python3 -m pip install typing")
     from PyQt5.QtWidgets import QApplication
     from data_manager import DataManager
     from widgets.main_widget import MyMainWindow

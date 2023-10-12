@@ -38,6 +38,7 @@ class GuildAddWidget(QWidget):
 
         self.guild_server_cb = QComboBox()
         self.guild_name_cb = QComboBox()
+        self.pre_guild_server = None
         self.pre_guild_name = None
 
         self.name_lb = QLabel("길드 이름 :")
@@ -72,10 +73,10 @@ class GuildAddWidget(QWidget):
 
         #
         self.guild_name_cb.currentIndexChanged.connect(self.guild_cb_work)
-        self.refresh_guild_cb()
 
         self.position_count_sb.setMinimum(5)
         self.position_count_sb.setMaximum(12)
+        self.refresh_guild_cb()
 
         self.maple_account_chb.released.connect(self.maple_account_chb_work)
         self.position_alias_chb.released.connect(self.position_alias_chb_work)
@@ -174,6 +175,7 @@ class GuildAddWidget(QWidget):
             self.server_le.setText(guild.get_server())
             self.server_le.setDisabled(True)
             self.position_count_sb.setValue(guild.get_position_count())
+            self.position_count_sb.setMinimum(DataManager.get_min_position())
             if self.maple_account_chb.isChecked():
                 layout = self.main_vbox.itemAt(5).widget().layout()
                 id_le: QLineEdit = layout.itemAt(0).layout().itemAt(1).widget()
@@ -231,16 +233,19 @@ class GuildAddWidget(QWidget):
 
     def refresh_guild_cb(self) -> None:
         self.guild_server_cb.clear()
-        for s in DataManager.get_servers():
+        index = 0
+        for s_index, s in enumerate(DataManager.get_servers()):
             self.guild_server_cb.addItem(s)
-
+            if s == self.pre_guild_name:
+                index = s_index+1
+        self.guild_server_cb.setCurrentIndex(index)
         self.guild_name_cb.clear()
         self.guild_name_cb.addItem(self.new_text)
         index = 0
         for g_index, g in enumerate(DataManager.get_guilds(self.guild_server_cb.currentText())):
             self.guild_name_cb.addItem(g.name)
             if g.name == self.pre_guild_name:
-                index = g_index
+                index = g_index+1
         self.guild_name_cb.setCurrentIndex(index)
 
 
@@ -309,7 +314,7 @@ class GuildAddWidget(QWidget):
 
             name = self.name_le.text()
             server = self.server_le.text()
-            if server.isalpha():
+            if server.encode().isalpha():
                 server = DataManager.server_eng_to_kor(server)
             if not DataManager.is_exist_server(server):
                 warn = QMessageBox.warning(
@@ -338,7 +343,6 @@ class GuildAddWidget(QWidget):
                 pw_widget: QLineEdit = pw_le_item.widget()
                 maple_pw = pw_widget.text()
                 DataManager.set_guild_account(name=name, server=server, maple_id=maple_id, password=maple_pw)
-            DataManager.update_changes()
         else:
             name = self.guild_name_cb.currentText()
             server = self.guild_server_cb.currentText()
@@ -355,8 +359,10 @@ class GuildAddWidget(QWidget):
                 self.mhl_wg.apply_changes()
             if self.guild_update_setting_chb.isChecked():
                 self.gus_wg.change_permission()
-            self.pre_guild_name=  self.guild_name_cb.currentText()
-            DataManager.update_changes()
+        self.pre_guild_server = self.guild_server_cb.currentText()
+        self.pre_guild_name = self.guild_name_cb.currentText()
+        DataManager.update_changes()
+        DataManager.save()
 
 if __name__ == '__main__':
     from PyQt5.QtWidgets import QApplication
